@@ -1,0 +1,46 @@
+name: package
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  # Fetches every file package.yaml lists from BepInEx's own release and checks it against the pinned SHA-256. A
+  # published release then gets them attached, unchanged; its tag must be v<version>.
+  files:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Fetch and check
+        shell: python
+        run: |
+          import hashlib, os, urllib.request, yaml
+          package = yaml.safe_load(open("package.yaml", encoding="utf-8"))
+          base = f"{package['upstream']['repository']}/releases/download/{package['upstream']['tag']}"
+          os.makedirs("out", exist_ok=True)
+          for f in package["files"]:
+              data = urllib.request.urlopen(f"{base}/{f['name']}").read()
+              digest = hashlib.sha256(data).hexdigest()
+              if digest != f["sha256"]:
+                  raise SystemExit(f"{f['name']}: SHA-256 {digest}, package.yaml pins {f['sha256']}")
+              open(os.path.join("out", f["name"]), "wb").write(data)
+              print(f"{f['name']}: {len(data)} bytes, as pinned")
+          tag = os.environ.get("TAG")
+          if tag and tag != f"v{package['version']}":
+              raise SystemExit(f"package.yaml says {package['version']}, the tag is {tag}")
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+      - name: Attach the files
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" out/* --clobber

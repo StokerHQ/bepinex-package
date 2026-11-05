@@ -1,0 +1,14 @@
+# The BepInEx release this repository republishes, unchanged, as app.stokerhq.bepinex. Every file is BepInEx's own
+# release asset, checked here by SHA-256 before it is attached to this repository's release of the same version.
+version: "5.4.23.6"
+upstream:
+  repository: https://github.com/BepInEx/BepInEx
+  tag: v5.4.23.6
+  commit: 4865251c5251293dbd7040c1d8796d277857e47f
+files:
+  - name: BepInEx_win_x64_5.4.23.6.zip
+    sha256: 6c57a714a892efb4e9e1fef63d608a3391f30ec984031c465404e4ee381a0755
+  - name: BepInEx_win_x86_5.4.23.6.zip
+    sha256: a4024dafaca5d3784097e34b3c2921415030c0b461e52f30053ed8914be9622d
+  - name: BepInEx_linux_x64_5.4.23.6.zip
+    sha256: f8ac87a97fb1ef85451c04ace1fddb7dd7eb0b079c179b989d6bc462c98bd365
